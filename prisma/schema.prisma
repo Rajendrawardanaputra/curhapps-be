@@ -1,0 +1,151 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String             @id @default(uuid())
+  email            String             @unique
+  name             String
+  phone            String
+  class            String?
+  address          String?            @db.Text()
+  photo            String?
+  password         String
+  role             Role               @default(student)
+  Chat             Chat[]
+  DetailCounseling DetailCounseling[]
+  created_at       DateTime           @default(now())
+  updated_at       DateTime           @updatedAt
+  OTP              Otp[]
+  Notification     Notification[]
+  rating           Int?
+}
+
+model Room {
+  id         String   @id @default(uuid())
+  status     Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  Chat       Chat[]
+  // DetailRoom DetailRoom[]
+  Online     Online[]
+}
+
+// model DetailRoom {
+//   id      Int  @id @default(autoincrement())
+//   id_room Int
+//   Room    Room @relation(fields: [id_room], references: [id])
+//   id_user Int
+//   User    User @relation(fields: [id_user], references: [id])
+// }
+
+model Chat {
+  id         String   @id @default(uuid())
+  id_room    String
+  Room       Room     @relation(fields: [id_room], references: [id])
+  id_user    String
+  type       ChatType
+  message    String
+  User       User     @relation(fields: [id_user], references: [id])
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Counseling {
+  id               String             @id @default(uuid())
+  category         Category           @default(online)
+  status           StatusConseling    @default(waiting)
+  note             String?            @db.Text()
+  rating           Int?
+  Online           Online[]
+  DetailCounseling DetailCounseling[]
+  Offline          Offline[]
+  created_at       DateTime           @default(now())
+  updated_at       DateTime           @updatedAt
+}
+
+model DetailCounseling {
+  id            Int        @id @default(autoincrement())
+  id_counseling String
+  Counseling    Counseling @relation(fields: [id_counseling], references: [id])
+  id_user       String
+  User          User       @relation(fields: [id_user], references: [id])
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+}
+
+model Online {
+  id            Int        @id @default(autoincrement())
+  id_counseling String
+  Counseling    Counseling @relation(fields: [id_counseling], references: [id])
+  id_room       String
+  Room          Room       @relation(fields: [id_room], references: [id])
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+}
+
+model Offline {
+  id            Int        @id @default(autoincrement())
+  id_counseling String
+  Counseling    Counseling @relation(fields: [id_counseling], references: [id])
+  date          DateTime
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+}
+
+model Otp {
+  id         String   @id @default(uuid())
+  id_user    String
+  User       User     @relation(fields: [id_user], references: [id])
+  otp        String
+  created_at DateTime @default(now())
+  expired_at DateTime
+}
+
+model Notification {
+  id           String   @id @default(uuid())
+  id_user      String
+  url          String
+  icon         String
+  User         User     @relation(fields: [id_user], references: [id])
+  title        String
+  notification String
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+}
+
+enum Role {
+  admin
+  student
+  teacher
+}
+
+enum Category {
+  offline
+  online
+}
+
+enum StatusConseling {
+  waiting
+  approved
+  reject
+  rejected
+  done
+}
+
+enum ChatType {
+  message
+  document
+  video
+  photo
+  audio
+}
